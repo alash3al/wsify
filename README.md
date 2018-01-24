@@ -24,7 +24,7 @@ How it Works?
 Installation
 ==============
 
-- **Docker ?** > `docker run alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
+- **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
 - **Binary ?** > goto the releases page and download yours.
 - **From Source ?** > Are you a Gopher ? `;)`
 
