@@ -15,7 +15,7 @@ How it Works?
 ===============
 - `Wsify` contains a `http` server.
 - That http server translate the request `path` i.e `/some/channel/` to a redis channel `some/channel`.
-- After the client requests `/some/channel/` the `wsify` server will send a request to a `webhook` to just authenticate the request.
+- After the client requests `ws://wsify.dev/some/channel/` the `wsify` server will send a request to a `webhook` to just authenticate the request.
 - The `webhook` will recieve the `Authorization` header `Bearer XXXXXXX` and a query param `channel` that will contains the requested channel.
 - In the `webhook` you do your own logic to tell `wsify` that this client is authorized or not by simple returns a status code `200` in case of success, or anything else to block the user.
 - To publish a message you need to `redis-cli> PUBLISH some/channel '{"payload": "hi", to: []}'` this will publish the payload "hi" to all the subscribers on that channel `some/channel`.
