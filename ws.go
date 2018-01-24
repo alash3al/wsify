@@ -68,7 +68,7 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 			var parsedMsg *Message
 			if err := JsonDecode([]byte(msg.Payload), &parsedMsg); err != nil {
 				continue
-			} else if (len(parsedMsg.To) >= 1) && ! parsedMsg.IsUserAllowed(authorization) {
+			} else if ! parsedMsg.IsUserAllowed(authorization) {
 				continue
 			} else if conn.WriteJSON(parsedMsg.Payload) != nil {
 				disconnected <- true
