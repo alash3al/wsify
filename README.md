@@ -4,7 +4,7 @@ Websocketify (wsify) v1.0
 
 Features
 ================
-- No dependencies !
+- No dependencies except for redis as storage layer !
 - Light and Tiny.
 - Uses Redis as Pub/Sub backend.
 - A client can listen on any redis channel with no hassle.
