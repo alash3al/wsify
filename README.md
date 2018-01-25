@@ -18,14 +18,14 @@ How it Works?
 - After the client requests `ws://wsify.dev/some/channel/` the `wsify` server will send a request to a `webhook` to just authenticate the request.
 - The `webhook` will recieve the `Authorization` header `Bearer XXXXXXX` and a query param `channel` that will contains the requested channel.
 - In the `webhook` you do your own logic to tell `wsify` that this client is authorized or not by simple returns a status code `200` in case of success, or anything else to block the user.
-- To publish a message you need to `redis-cli> PUBLISH some/channel '{"payload": "hi", to: []}'` this will publish the payload "hi" to all the subscribers on that channel `some/channel`.
-- To only send it to certain users, you will need to specify the target(s) tokens in the `to` field `redis-cli> PUBLISH some/channel '{"payload": "hi", to: ["Bearer XXXXXX"]}'.`
+- To publish a message you need to `redis-cli> PUBLISH some/channel '{"payload": "hi", "to": []}'` this will publish the payload "hi" to all the subscribers on that channel `some/channel`.
+- To only send it to certain users, you will need to specify the target(s) tokens in the `to` field `redis-cli> PUBLISH some/channel '{"payload": "hi", "to": ["Bearer XXXXXX"]}'.`
 
 Installation
 ==============
 
 - **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
-- **Binary ?** > goto the releases page and download yours.
+- **Binary ?** > goto the [releases](https://github.com/alash3al/wsify/releases) page and download yours.
 - **From Source ?** > Are you a Gopher ? `;)`
 
 Author
