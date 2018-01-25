@@ -26,7 +26,7 @@ Installation
 
 - **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
 - **Binary ?** > goto the [releases](https://github.com/alash3al/wsify/releases) page and download yours.
-- **From Source ?** > Are you a Gopher ? `;)`
+- **From Source ?** > `go get -u github.com/alash3al/wsify`
 
 Author
 =============
