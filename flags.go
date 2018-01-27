@@ -5,25 +5,22 @@ import (
 	"strings"
 )
 
-import "github.com/go-redis/redis"
-
 var (
-	FLAG_HTTP_ADDR      = flag.String("listen", ":4040", "the http address to listen on")
-	FLAG_ALLOWED_ORIGIN = flag.String("allowed-origin", "*", "the allowed websocket origin(s), it accepts a comma separated list of domains, * means anything")
-	FLAG_AUTH_BACKEND   = flag.String("auth-webhook", "http://localhost:8000", "the auth endpoint that will validate the response")
-	FLAG_REDIS_SERVER   = flag.String("redis", "redis://localhost:6379/1", "the backend server to fallback to")
+	FLAG_HTTP_ADDR        = flag.String("listen", ":4040", "the http address to listen on")
+	FLAG_ALLOWED_ORIGIN   = flag.String("origin", "*", "the allowed websocket origin(s), it accepts a comma separated list of domains, * means anything")
+	FLAG_WEBHOOK_URL      = flag.String("webhook", "http://localhost:8000", "the webhook")
+	FLAG_WEBHOOK_EVENTS   = flag.String("events", "connect,disconnect,subscribe,unsubscribe", "the events to be sent to the webhook")
+	FLAG_PUBLISH_ENDPOINT = flag.String("publish", "/publish", "the publish endpoint, just make it as secure as you can")
 )
 
 var (
-	ALLOWED_ORIGINS = []string{}
-	REDIS_CLIENT    *redis.Client
+	VERSION        = "2.0"
+	WEBHOOK_EVENTS = map[string]bool{}
 )
 
-func InitFlags() (err error) {
+func InitFlags() {
 	flag.Parse()
-	for _, origin := range strings.Split(*FLAG_ALLOWED_ORIGIN, ",") {
-		ALLOWED_ORIGINS = append(ALLOWED_ORIGINS, strings.TrimSpace(origin))
+	for _, e := range strings.Split(strings.ToLower(*FLAG_WEBHOOK_EVENTS), ",") {
+		WEBHOOK_EVENTS[strings.TrimSpace(e)] = true
 	}
-	err, REDIS_CLIENT = RedisConnect(*FLAG_REDIS_SERVER)
-	return err
 }
