@@ -1,12 +1,17 @@
 package main
 
-import "log"
-import "net/http"
-import "strings"
-import "github.com/gorilla/websocket"
-import "github.com/alash3al/go-pubsub"
-import "github.com/labstack/echo"
-import "github.com/labstack/echo/middleware"
+import (
+	"log"
+	"net/http"
+	"strings"
+)
+
+import (
+	"github.com/alash3al/go-pubsub"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+)
 
 var (
 	// Default websocket upgrader
@@ -61,7 +66,7 @@ func WSHandler(c echo.Context) error {
 	go (func() {
 		var action Event
 		stop := false
-		for ! stop {
+		for !stop {
 			if conn.ReadJSON(&action) != nil {
 				stop = true
 				break
@@ -144,5 +149,6 @@ func InitWsServer(addr string) error {
 
 	e.GET("/subscribe", WSHandler)
 	e.POST(*FLAG_PUBLISH_ENDPOINT, PublishHandler)
+
 	return e.Start(addr)
 }
