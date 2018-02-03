@@ -58,7 +58,23 @@ as well as the event being executed, and here is the event format:
 }
 ```
 
-### (5)- Can I skip the webhook events for testing?
+### (5)- How can I publish message to i.e `testchan`?
+> Just a post request to `/publish` with the following format:
+```javascript
+{
+	// the channel you want to publish to
+	"channel": "testchan",
+
+	// the data to be send (any format)
+	"payload": "testchan",
+
+	// array of clients "keys" (if you want certain clients only to receive the message)
+	"to": []
+}
+}
+```
+
+### (6)- Can I skip the webhook events for testing?
 > Yes, `wsify --events=""` empty events means "NO WEBHOOK, WSIFY!"
 
 Author
