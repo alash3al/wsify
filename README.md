@@ -27,7 +27,7 @@ Questions
 ==========
 
 ### (1)- How can a client/device connect to the websocket service?
-> by simple connecting to the following endpoint `ws://your.wsify.service:port/subscribe`
+> by simply connecting to the following endpoint `ws://your.wsify.service:port/subscribe`
 
 ### (2)- How can a client subscribe to a certain channel(s)/topic(s)?
 > after connecting to the main websocket service `/subscribe`, you can send a simple json payload `commands` to ask wsify to `subscribe`/`unsubscribe` you to/from any channel/topic you want!
@@ -71,11 +71,22 @@ as well as the event being executed, and here is the event format:
 	// array of clients "keys" (if you want certain clients only to receive the message)
 	"to": []
 }
-}
+```
+i.e
+```bash
+curl -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"payload": "hi from the terminal", "channel": "testchan"}' \
+	http://localhost:4040/publish
 ```
 
 ### (6)- Can I skip the webhook events for testing?
 > Yes, `wsify --events=""` empty events means "NO WEBHOOK, WSIFY!"
+
+Demo
+======
+> I'm using (this chrome extension)[https://chrome.google.com/webstore/detail/pfdhoblngboilpfeibdedpjgfnlcodoo] for websocket testing
+![Quick Demo](https://i.imgur.com/jxyejg0.gif)
 
 Author
 =============
