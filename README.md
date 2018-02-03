@@ -1,32 +1,65 @@
 Websocketify (wsify) v1.0
 =========================
-> Just a tiny, simple and realtime websocket based pub/sub messaging service using redis as backend.
+> Just a tiny, simple and realtime pub/sub messaging service
+
+Why
+====
+> I wanted to create a tiny solution that can replace `pusher` and similar services and learning more about the realtime world, so I dispatched this project.
 
 Features
 ================
-- No dependencies except for redis as storage layer !
+- No dependencies, just a single binary !
 - Light and Tiny.
-- Uses Redis as Pub/Sub backend.
-- A client can listen on any redis channel with no hassle.
-- You can handle the user authentication using a simple `webhook`.
-- You can set a message to only be sent to certain users.
+- Event-Driven Design `webhooks`.
+- A client can listen on any resource.
+- You control whether a client is allowed to `connect`, `subscribe`, `unsubscribe` using any programming language !.
+- A client defines itself using `key` via the url query param i.e `?key=123`.
+- Send messages to only certain users.
 
-How it Works?
-===============
-- `Wsify` implements a `http` server.
-- That http server translates the request `path` i.e `/some/channel/` to a redis channel `some/channel`.
-- After the client requests `ws://wsify.dev/some/channel/` the `wsify` server will send a request to a `webhook` to just authenticate the request.
-- The `webhook` will recieve the `Authorization` header `Bearer XXXXXXX` and a query param `?channel=some/channel` that will contain the requested channel.
-- In the `webhook`, you do your own logic to tell `wsify` that this client is authorized or not by simply returns a status code `200` in case of success, or anything else to say that this user isn't authorized.
-- To publish a message you need to `redis-cli> PUBLISH some/channel '{"payload": "hi", "to": []}'` this will publish the payload "hi" to all the subscribers on that channel `some/channel`.
-- To only send it to certain users, you will need to specify the target(s) tokens in the `to` field `redis-cli> PUBLISH some/channel '{"payload": "hi", "to": ["Bearer XXXXXX"]}'.`
 
 Installation
 ==============
-
 - **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
 - **Binary ?** > goto the [releases](https://github.com/alash3al/wsify/releases) page and download yours.
 - **From Source ?** > `go get -u github.com/alash3al/wsify`
+
+Questions
+==========
+
+### (1)- How can a client/device connect to the websocket service?
+> by simple connecting to the following endpoint `ws://your.wsify.service:port/subscribe`
+
+### (2)- How can a client subscribe to a certain channel(s)/topic(s)?
+> after connecting to the main websocket service `/subscribe`, you can send a simple json payload `commands` to ask wsify to `subscribe`/`unsubscribe` you to/from any channel/topic you want!
+
+### (3)- What is the commands format?
+>
+```json
+{
+	"action": "subscribe",
+	"value": "testchan"
+}
+
+```
+
+### (4)- Can I control the client command so I can allow/disallow certain users?
+> Yes, each client can define itself using a query param `?key=client1`, this key will be passed to the `webhook` endpoint
+as well as the event being executed, and here is the event format:
+```javascript
+{
+	// one of the following: connect|subscribe|unsubscribe|disconnect
+	"action": "subscribe",
+
+	// the channel if provided
+	"value": "testchan",
+
+	// the key provided by the client
+	"key": "client1"
+}
+```
+
+### (5)- Can I skip the webhook events for testing?
+> Yes, `wsify --events=""` empty events means "NO WEBHOOK, WSIFY!"
 
 Author
 =============
