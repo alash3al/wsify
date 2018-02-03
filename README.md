@@ -74,4 +74,4 @@ Contribution
 
 License
 =============
-This code is under MIT license ...
+Wsify is licensed under MIT license
