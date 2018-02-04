@@ -91,6 +91,8 @@ curl -X POST \
 ### (8)- What about other options?
 > `wsify --help` will help you !
 
+![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
+
 Author
 =============
 This project has been created by [Mohamed Al Ashaal](http://github.com/alash3al) a Crazy Gopher ^^!
