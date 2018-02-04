@@ -87,6 +87,7 @@ Demo
 ======
 > I'm using [this chrome extension](https://chrome.google.com/webstore/detail/pfdhoblngboilpfeibdedpjgfnlcodoo) for websocket testing
 ![Quick Demo](https://i.imgur.com/jxyejg0.gif)
+![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
 
 Author
 =============

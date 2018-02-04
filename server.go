@@ -85,7 +85,6 @@ func WSHandler(c echo.Context) error {
 				Broker.Unsubscribe(subscriber, action.Value)
 			}
 		}
-		log.Println("ss")
 		closeCh <- true
 	})()
 	for !closed {
