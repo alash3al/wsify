@@ -1,6 +1,8 @@
-Websocketify (wsify) v1.0
+Websocketify (wsify) v2.0
 =========================
 > Just a tiny, simple and realtime pub/sub messaging service
+
+![Quick Demo](https://i.imgur.com/jxyejg0.gif)
 
 Why
 ====
@@ -83,11 +85,11 @@ curl -X POST \
 ### (6)- Can I skip the webhook events for testing?
 > Yes, `wsify --events=""` empty events means "NO WEBHOOK, WSIFY!"
 
-Demo
-======
-> I'm using [this chrome extension](https://chrome.google.com/webstore/detail/pfdhoblngboilpfeibdedpjgfnlcodoo) for websocket testing
-![Quick Demo](https://i.imgur.com/jxyejg0.gif)
-![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
+### (7)- How can I secure the publish endpoint, so no one except me can publish ?!!
+> Easy :), Just change the endpoint to something more secure and hard to guess it is an alternative to access tokens .. etc, `wsify --publish="/broadcasteiru6chefoh1Yee0MohJ2um5eepaephies3zonai0Cae7quaeb"`
+
+### (8)- What about other options?
+> `wsify --help` will help you !
 
 Author
 =============
