@@ -21,7 +21,7 @@ Features
 
 Installation
 ==============
-- **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -auth-webhook "http://localhost/auth.php"`   
+- **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -webhook "http://localhost/wsify.php"`   
 - **Binary ?** > goto the [releases](https://github.com/alash3al/wsify/releases) page and download yours.
 - **From Source ?** > `go get -u github.com/alash3al/wsify`
 
