@@ -120,7 +120,7 @@ func PublishHandler(c echo.Context) error {
 		})
 	}
 	Broker.Broadcast(msg, msg.Topic)
-	return c.JSON(422, map[string]interface{}{
+	return c.JSON(200, map[string]interface{}{
 		"sucess": true,
 		"data":   msg,
 	})
