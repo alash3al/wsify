@@ -63,6 +63,10 @@ func WSHandler(c echo.Context) error {
 	}
 	closeCh := make(chan bool)
 	closed := false
+	conn.SetCloseHandler(func(_ int, _ string) error {
+		closeCh <- true
+		return nil
+	})
 	go (func() {
 		var action Event
 		stop := false
