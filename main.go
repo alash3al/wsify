@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/bclicn/color"
 )
 
@@ -14,12 +15,12 @@ func main() {
 	}()
 
 	// parsing the command line flags
-	fmt.Println(color.BGreen("[*] Welcome to WSIFY"), color.BCyan(VERSION))
+	fmt.Println(color.BGreen("[*] Welcome to WSIFY"), color.BCyan(Version))
 	InitFlags()
 
 	// start the pub/sub server
-	fmt.Println(color.BGreen("[*] Listening for connections on address"), color.BCyan(*FLAG_HTTP_ADDR), color.BGreen(" ..."))
-	if err := InitWsServer(*FLAG_HTTP_ADDR); err != nil {
+	fmt.Println(color.BGreen("[*] Listening for connections on address"), color.BCyan(*FlagHTTPAddr), color.BGreen(" ..."))
+	if err := InitWsServer(*FlagHTTPAddr); err != nil {
 		fmt.Println(color.BRed("[!] Error: ") + color.BLightYellow(err.Error()))
 		return
 	}
