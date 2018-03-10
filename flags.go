@@ -6,21 +6,26 @@ import (
 )
 
 var (
-	FLAG_HTTP_ADDR        = flag.String("listen", ":4040", "the http address to listen on")
-	FLAG_ALLOWED_ORIGIN   = flag.String("origin", "*", "the allowed websocket origin(s), it accepts a comma separated list of domains, * means anything")
-	FLAG_WEBHOOK_URL      = flag.String("webhook", "http://localhost:8000", "the webhook")
-	FLAG_WEBHOOK_EVENTS   = flag.String("events", "connect,disconnect,subscribe,unsubscribe", "the events to be sent to the webhook")
-	FLAG_PUBLISH_ENDPOINT = flag.String("publish", "/publish", "the publish endpoint, just make it as secure as you can")
+	//FlagHTTPAddr ...
+	FlagHTTPAddr = flag.String("listen", ":4040", "the http address to listen on")
+	//FlagAllowedOrigin ...
+	FlagAllowedOrigin = flag.String("origin", "*", "the allowed websocket origin(s), it accepts a comma separated list of domains, * means anything")
+	//FlagWebhookURL ...
+	FlagWebhookURL = flag.String("webhook", "http://localhost:8000", "the webhook")
+	//FlagWebhookEvents ...
+	FlagWebhookEvents = flag.String("events", "connect,disconnect,subscribe,unsubscribe", "the events to be sent to the webhook")
+	//FlagPublishEndpoint ...
+	FlagPublishEndpoint = flag.String("publish", "/publish", "the publish endpoint, just make it as secure as you can")
+	//Version ...
+	Version = "2.0"
+	//WebhookEvents ..
+	WebhookEvents = map[string]bool{}
 )
 
-var (
-	VERSION        = "2.0"
-	WEBHOOK_EVENTS = map[string]bool{}
-)
-
+//InitFlags ...
 func InitFlags() {
 	flag.Parse()
-	for _, e := range strings.Split(strings.ToLower(*FLAG_WEBHOOK_EVENTS), ",") {
-		WEBHOOK_EVENTS[strings.TrimSpace(e)] = true
+	for _, e := range strings.Split(strings.ToLower(*FlagWebhookEvents), ",") {
+		WebhookEvents[strings.TrimSpace(e)] = true
 	}
 }

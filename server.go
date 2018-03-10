@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	// Default websocket upgrader
+	// WSUpgrader is Default websocket upgrader
 	WSUpgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
-			for _, origin := range strings.Split(*FLAG_ALLOWED_ORIGIN, ",") {
+			for _, origin := range strings.Split(*FlagAllowedOrigin, ",") {
 				origin = strings.TrimSpace(origin)
 				if origin == "*" || origin == r.Host {
 					return true
@@ -30,11 +30,11 @@ var (
 		EnableCompression: true,
 	}
 
-	// Default broker
+	//Broker default
 	Broker = pubsub.NewBroker()
 )
 
-// the websocket request handler
+// WSHandler is the websocket request handler
 func WSHandler(c echo.Context) error {
 	defer (func() {
 		if err := recover(); err != nil {
@@ -53,10 +53,10 @@ func WSHandler(c echo.Context) error {
 	if err != nil {
 		return nil
 	}
-	defer conn.Close()
+	defer conn.Close() // nolint: errcheck
 	subscriber, err := Broker.Attach()
 	if err != nil {
-		conn.WriteJSON(map[string]string{
+		conn.WriteJSON(map[string]string{ // nolint: errcheck
 			"error": "Sorry, couldn't allocate resources for you",
 		})
 		return nil
@@ -67,30 +67,7 @@ func WSHandler(c echo.Context) error {
 		closeCh <- true
 		return nil
 	})
-	go (func() {
-		var action Event
-		stop := false
-		for !stop {
-			if conn.ReadJSON(&action) != nil {
-				stop = true
-				break
-			}
-			if action.Action == "subscribe" || action.Action == "unsubscribe" {
-				if !TriggerWebhook(Event{Action: action.Action, Key: key, Value: action.Value}) {
-					conn.WriteJSON(map[string]string{
-						"error": "You aren't allowed to access the requested resource",
-					})
-					continue
-				}
-			}
-			if action.Action == "subscribe" {
-				Broker.Subscribe(subscriber, action.Value)
-			} else if action.Action == "unsubscribe" {
-				Broker.Unsubscribe(subscriber, action.Value)
-			}
-		}
-		closeCh <- true
-	})()
+	goRoutineAction(conn, closeCh, subscriber, key)
 	for !closed {
 		select {
 		case <-closeCh:
@@ -114,31 +91,48 @@ func WSHandler(c echo.Context) error {
 	return nil
 }
 
-// publish handler
+func goRoutineAction(conn *websocket.Conn, closeCh chan bool, subscriber *pubsub.Subscriber, key string) {
+	go (func() {
+		var action Event
+		for {
+			if conn.ReadJSON(&action) != nil {
+				break
+			}
+			if action.Action == "subscribe" || action.Action == "unsubscribe" {
+				if !TriggerWebhook(Event{Action: action.Action, Key: key, Value: action.Value}) {
+					conn.WriteJSON(map[string]string{ // nolint: errcheck
+						"error": "You aren't allowed to access the requested resource",
+					})
+					continue
+				}
+			}
+			if action.Action == "subscribe" {
+				Broker.Subscribe(subscriber, action.Value)
+			} else if action.Action == "unsubscribe" {
+				Broker.Unsubscribe(subscriber, action.Value)
+			}
+		}
+		closeCh <- true
+	})()
+}
+
+// PublishHandler ...
 func PublishHandler(c echo.Context) error {
 	var msg Message
 	if err := c.Bind(&msg); err != nil {
 		return c.JSON(422, map[string]interface{}{
-			"sucess": false,
-			"error":  err.Error(),
+			"success": false,
+			"error":   err.Error(),
 		})
 	}
 	Broker.Broadcast(msg, msg.Topic)
 	return c.JSON(200, map[string]interface{}{
-		"sucess": true,
-		"data":   msg,
-	})
-}
-
-// welcome handler
-func WelcomeHandler(c echo.Context) error {
-	return c.JSON(200, map[string]interface{}{
 		"success": true,
-		"message": "let's go ?",
+		"data":    msg,
 	})
 }
 
-// start the websocket server
+// InitWsServer start the websocket server
 func InitWsServer(addr string) error {
 	e := echo.New()
 
@@ -151,7 +145,7 @@ func InitWsServer(addr string) error {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 9}))
 
 	e.GET("/subscribe", WSHandler)
-	e.POST(*FLAG_PUBLISH_ENDPOINT, PublishHandler)
+	e.POST(*FlagPublishEndpoint, PublishHandler)
 
 	return e.Start(addr)
 }
