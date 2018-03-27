@@ -72,7 +72,6 @@ func WSHandler(c echo.Context) error {
 		select {
 		case <-closeCh:
 			closed = true
-			close(closeCh)
 			Broker.Detach(subscriber)
 			TriggerWebhook(Event{Action: "disconnect", Key: key})
 		case data := <-subscriber.GetMessages():
@@ -112,7 +111,7 @@ func goRoutineAction(conn *websocket.Conn, closeCh chan bool, subscriber *pubsub
 				Broker.Unsubscribe(subscriber, action.Value)
 			}
 		}
-		closeCh <- true
+		close(closeCh)
 	})()
 }
 
