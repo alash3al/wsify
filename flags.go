@@ -17,7 +17,7 @@ var (
 	//FlagPublishEndpoint ...
 	FlagPublishEndpoint = flag.String("publish", "/publish", "the publish endpoint, just make it as secure as you can")
 	//Version ...
-	Version = "2.0"
+	Version = "2.2"
 	//WebhookEvents ..
 	WebhookEvents = map[string]bool{}
 )
