@@ -91,6 +91,9 @@ curl -X POST \
 ### (8)- What about other options?
 > `wsify --help` will help you !
 
+### (9)- What is the websocket client used in demos?
+> [Simple Websocket Client](https://chrome.google.com/webstore/detail/simple-websocket-client/pfdhoblngboilpfeibdedpjgfnlcodoo)
+
 ![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
 
 Author
