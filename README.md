@@ -94,6 +94,19 @@ curl -X POST \
 ### (9)- What is the websocket client used in demos?
 > [Simple Websocket Client](https://chrome.google.com/webstore/detail/simple-websocket-client/pfdhoblngboilpfeibdedpjgfnlcodoo)
 
+### (10)- How I can use it over SSl/TLS with Nginx?
+> You can use proxy, add this lines on your Nginx configration
+```
+    location /websocket/subscribe {
+        proxy_pass http://localhost:4040/subscribe;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+```
+Now you can call websocket by `wss://yourdomain.com/websocket/subscribe` 
+
+
 ![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
 
 Author
