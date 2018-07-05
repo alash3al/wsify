@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/rs/xid"
 )
 
 var (
@@ -42,6 +43,9 @@ func WSHandler(c echo.Context) error {
 		}
 	})()
 	key := c.QueryParam("key")
+	if key == "" {
+		key = "Anonymous#" + xid.New().String()
+	}
 	allowed := TriggerWebhook(Event{
 		Action: "connect",
 		Key:    key,
@@ -63,7 +67,9 @@ func WSHandler(c echo.Context) error {
 	}
 	closeCh := make(chan bool)
 	closed := false
+	debug("New Valid Connection(" + key + ")")
 	conn.SetCloseHandler(func(_ int, _ string) error {
+		debug("Connection(" + key + ") has been closed (by itself)")
 		closeCh <- true
 		return nil
 	})
@@ -76,13 +82,16 @@ func WSHandler(c echo.Context) error {
 			TriggerWebhook(Event{Action: "disconnect", Key: key})
 		case data := <-subscriber.GetMessages():
 			msg := (data.GetPayload()).(Message)
+			debug("Incomming message to(" + key + ") ...")
 			if !msg.IsUserAllowed(key) {
+				debug("The client(" + key + ") isn't allowed to see the message")
 				continue
 			}
 			msg.Topic = data.GetTopic()
 			msg.Time = data.GetCreatedAt()
 			msg.To = nil
-			if conn.WriteJSON(msg) != nil {
+			if err := conn.WriteJSON(msg); err != nil {
+				debug("A message cannot be published to (" + key + ") because of the following error (" + err.Error() + ")")
 				closeCh <- true
 			}
 		}
@@ -94,9 +103,11 @@ func goRoutineAction(conn *websocket.Conn, closeCh chan bool, subscriber *pubsub
 	go (func() {
 		var action Event
 		for {
-			if conn.ReadJSON(&action) != nil {
+			if err := conn.ReadJSON(&action); err != nil {
+				debug("Cannot read from the connection of(" + key + "), may connection has been closed, closing ...")
 				break
 			}
+			debug("An action (" + action.Action + ") from the client(" + key + ")")
 			if action.Action == "subscribe" || action.Action == "unsubscribe" {
 				if !TriggerWebhook(Event{Action: action.Action, Key: key, Value: action.Value}) {
 					conn.WriteJSON(map[string]string{ // nolint: errcheck
@@ -125,6 +136,7 @@ func PublishHandler(c echo.Context) error {
 		})
 	}
 	Broker.Broadcast(msg, msg.Topic)
+	debug("publishing a message ...")
 	return c.JSON(200, map[string]interface{}{
 		"success": true,
 		"data":    msg,

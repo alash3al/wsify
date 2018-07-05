@@ -16,8 +16,10 @@ var (
 	FlagWebhookEvents = flag.String("events", "connect,disconnect,subscribe,unsubscribe", "the events to be sent to the webhook")
 	//FlagPublishEndpoint ...
 	FlagPublishEndpoint = flag.String("publish", "/publish", "the publish endpoint, just make it as secure as you can")
+	//FlagDebug
+	FlagDebug = flag.Bool("debug", false, "enable debugging mode")
 	//Version ...
-	Version = "2.2"
+	Version = "2.3"
 	//WebhookEvents ..
 	WebhookEvents = map[string]bool{}
 )

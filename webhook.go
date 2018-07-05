@@ -16,6 +16,9 @@ type Event struct {
 
 // TriggerWebhook ...
 func TriggerWebhook(ev Event) bool {
+	if *FlagWebhookURL == "" {
+		return true
+	}
 	ev.Action = strings.ToLower(ev.Action)
 	jdata, _ := json.Marshal(ev)
 	reader := bytes.NewReader(jdata)
