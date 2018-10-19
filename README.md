@@ -1,6 +1,7 @@
-Websocketify (wsify) v2.0
+Websocketify (wsify) v2.0 [![StackShare](https://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](https://stackshare.io/alash3al/wsify)
 =========================
 > Just a tiny, simple and realtime pub/sub messaging service
+
 
 ![Quick Demo](https://i.imgur.com/jxyejg0.gif)
 
