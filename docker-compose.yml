@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  wsify:
+    container_name: wsify
+    build: .
+    ports:
+      - "4040:4040"
+      - "8000:8000"
