@@ -54,10 +54,7 @@ as well as the event being executed, and here is the event format:
 	"action": "subscribe",
 
 	// the channel if provided
-	"value": "testchan",
-
-	// the key provided by the client
-	"key": "client1"
+	"value": "testchan"
 }
 ```
 
