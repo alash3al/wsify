@@ -3,7 +3,6 @@ module github.com/alash3al/wsify
 go 1.22.0
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/redis/go-redis/v9 v9.5.2
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511
