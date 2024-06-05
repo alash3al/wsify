@@ -1,123 +1,98 @@
-Websocketify (wsify) v2.0 [![StackShare](https://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](https://stackshare.io/alash3al/wsify)
-=========================
-> Just a tiny, simple and realtime pub/sub messaging service
+WSIFY
+======
+> a tiny general purpose websocket server that could be used for building real-time apps
+> in addition to giving you the power to simply accept/reject any websocket message when using the
+> authorizer feature (a webhook that should respond with 200 OK on success and anything else to reject).
 
-
-![Quick Demo](https://i.imgur.com/jxyejg0.gif)
-
-Why
-====
-> I wanted to create a tiny solution that can replace `pusher` and similar services and learning more about the realtime world, so I dispatched this project.
-
-Features
-================
-- No dependencies, just a single binary !
-- Light and Tiny.
-- Event-Driven Design `webhooks`.
-- A client can listen on any resource.
-- You control whether a client is allowed to `connect`, `subscribe`, `unsubscribe` using any programming language !.
-- A client defines itself using `key` via the url query param i.e `?key=123`.
-- Send messages to only certain users.
-
-
-Installation
-==============
-- **Docker ?** > `docker run --network host alash3al/wsify -listen :8080 -webhook "http://localhost/wsify.php"`   
-- **Binary ?** > goto the [releases](https://github.com/alash3al/wsify/releases) page and download yours.
-- **From Source ?** > `go get -u github.com/alash3al/wsify`
-
-Questions
+Philosophy
 ==========
+- A websocket server should only responsible for transmitting messages in real-time between connected parties.
+- It isn't the websocket server responsibility to authorize whether a party is allowed to send certain message or not.
+- An authorizer must respond with `200 OK` if a party can send a message.
+  - `200 OK` means "Authorized"
+  - `5xx` means "the authorizer is down, please close the current connection and reconnect"
+  - anything else means "NotAuthorized"
+- The client identity should be declared in the query params while connecting to the websocket endpoint and as an argument in the `args` of the message if needed.
+- 
 
-### (1)- How can a client/device connect to the websocket service?
-> by simply connecting to the following endpoint `ws://your.wsify.service:port/subscribe`
+Definitions
+============
+### Message
+> is a data structure contains some data to be transmitted.
 
-### (2)- How can a client subscribe to a certain channel(s)/topic(s)?
-> after connecting to the main websocket service `/subscribe`, you can send a simple json payload `commands` to ask wsify to `subscribe`/`unsubscribe` you to/from any channel/topic you want!
+```json5
+{
+  // command is a string describes what should be done
+  // available commands are:
+  // "join": joins a channel (specified in the "args.channel")
+  // "leave": leaves a channel (specified in the "args.channel")
+  // "broadcast": broadcasts a content (specified in the "args.content") to a channel (in "args.channel")
+  "command":  "join",
+  "args": {
+    "channel": "some_channel"
+  }
+}
+```
 
-### (3)- What is the commands format?
+### Authorizer
+> a webhook that responds with `200 OK` to accept a message sent by a websocket client,
+> the authorizer will receive a `POST` request containing a message data structure as described above, but there
+> is one special command that isn't described which is "connect", it is fired before accepting the websocket connection
+> and it sounds like 
+```json5
+{
+  "command": "connect",
+  "args": {
+    // array of all http headers sent by the client while trying to open a websocket connection.
+    "headers": [/*...*/],
+    // an object that contains all available query params sent by the client while trying to open a websocket connection.
+    "query": {/*...*/}
+  }
+}
+```
+
+Usage
+=====
+> There is no need to say a lot on how to use this software, just connect using any websocket client to `http://wsify:3000/ws` and start sending messages
+
+
+Examples
+========
+
+#### \> How can a client/device connect to the websocket service?
+> by simply connecting to the following endpoint `ws://your.wsify.service:port/ws`
+
+
+#### \> What is the command used to join a channel named "hello"?
 >
 ```json
 {
-	"action": "subscribe",
-	"value": "testchan"
+  "command":  "join",
+  "args": {
+    "channel": "hello"
+  }
 }
-
 ```
 
-### (4)- Can I control the client command so I can allow/disallow certain users?
-> Yes, each client can define itself using a query param `?key=client1`, this key will be passed to the `webhook` endpoint
-as well as the event being executed, and here is the event format:
-```javascript
+#### \> What is the command used to broadcast a message to the channel "hello"?
+```json
 {
-	// one of the following: connect|subscribe|unsubscribe|disconnect
-	"action": "subscribe",
-
-	// the channel if provided
-	"value": "testchan"
+  "command":  "broadcast",
+  "args": {
+    "channel": "hello"
+  }
 }
 ```
 
-### (5)- How can I publish message to i.e `testchan`?
-> Just a post request to `/publish` with the following format:
-```javascript
+#### \> How can I publish message to `hello` from another server without connecting to the websocket endpoint?
+> Do a post request to `/broadcast` with the following format:
+```json5
 {
-	// the channel you want to publish to
-	"channel": "testchan",
-
-	// the data to be send (any format)
-	"payload": "testchan",
-
-	// array of clients "keys" (if you want certain clients only to receive the message)
-	"to": []
-}
-```
-i.e
-```bash
-curl -X POST \
-	-H "Content-Type: application/json" \
-	-d '{"payload": "hi from the terminal", "channel": "testchan"}' \
-	http://localhost:4040/publish
-```
-
-### (6)- Can I skip the webhook events for testing?
-> Yes, `wsify --events=""` empty events means "NO WEBHOOK, WSIFY!"
-
-### (7)- How can I secure the publish endpoint, so no one except me can publish ?!!
-> Easy :), Just change the endpoint to something more secure and hard to guess it is an alternative to access tokens .. etc, `wsify --publish="/broadcasteiru6chefoh1Yee0MohJ2um5eepaephies3zonai0Cae7quaeb"`
-
-### (8)- What about other options?
-> `wsify --help` will help you !
-
-### (9)- What is the websocket client used in demos?
-> [Simple Websocket Client](https://chrome.google.com/webstore/detail/simple-websocket-client/pfdhoblngboilpfeibdedpjgfnlcodoo)
-
-### (10)- How I can use it over SSl/TLS with Nginx?
-> You can use proxy, add this lines on your Nginx configration
-```
-    location /websocket/subscribe {
-        proxy_pass http://localhost:4040/subscribe;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "Upgrade";
+    "channel": "hello",
+    "args": {
+      "content": "Hello World! from the server"
     }
+}
 ```
-Now you can call websocket by `wss://yourdomain.com/websocket/subscribe` 
 
-
-![Quick Demo2](https://i.imgur.com/f8xVwJU.gif)
-
-Author
-=============
-This project has been created by [Mohamed Al Ashaal](http://github.com/alash3al) a Crazy Gopher ^^!
-
-Contribution
-=============
-- Fork the Repo
-- Create a feature branch
-- Push your changes to the created branch
-- Create a pull request.
-
-License
-=============
-Wsify is open-sourced software licensed under the [MIT License](LICENSE).
+### for more info look at `$ ./wsify --help`

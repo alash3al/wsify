@@ -1,27 +1,35 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/bclicn/color"
+	"github.com/alash3al/wsify/broker"
+	_ "github.com/alash3al/wsify/broker/drivers/memory"
+	_ "github.com/alash3al/wsify/broker/drivers/redis"
+	"github.com/alash3al/wsify/config"
+	"github.com/alash3al/wsify/routes"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"log"
 )
 
 func main() {
-	// handling any panic here ...
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(color.BRed("[!] Panic: ") + color.BLightYellow(err.(string)))
-		}
-	}()
-
-	// parsing the command line flags
-	fmt.Println(color.BGreen("[*] Welcome to WSIFY"), color.BCyan(Version))
-	InitFlags()
-
-	// start the pub/sub server
-	fmt.Println(color.BGreen("[*] Listening for connections on address"), color.BCyan(*FlagHTTPAddr), color.BGreen(" ..."))
-	if err := InitWsServer(*FlagHTTPAddr); err != nil {
-		fmt.Println(color.BRed("[!] Error: ") + color.BLightYellow(err.Error()))
-		return
+	cfg, err := config.NewFromFlags()
+	if err != nil {
+		panic(err.Error())
 	}
+
+	brokerConn, err := broker.Connect(cfg.GetBrokerDriver(), cfg.GetBrokerDSN())
+	if err != nil {
+		panic(err.Error())
+	}
+
+	srv := echo.New()
+	srv.HideBanner = true
+
+	srv.Use(middleware.CORS())
+	srv.Use(middleware.Logger())
+
+	srv.GET("/ws", routes.WebsocketRouteHandler(cfg, brokerConn))
+	srv.POST("/broadcast", routes.BroadcastHandler(cfg, brokerConn))
+
+	log.Fatal(srv.Start(cfg.GetWebServerListenAddr()))
 }

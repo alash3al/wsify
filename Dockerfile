@@ -1,9 +1,21 @@
-FROM golang:alpine
+FROM golang:1.22-alpine As builder
 
-RUN apk update && apk add git
+WORKDIR /wsify/
 
-RUN go install github.com/alash3al/wsify@latest
+RUN apk update && apk add git upx
 
-ENTRYPOINT ["wsify"]
+COPY go.mod go.sum ./
 
-WORKDIR /root/
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 go build -ldflags "-s -w" -o /usr/bin/wsify .
+
+RUN upx -9 /usr/bin/wsify
+
+FROM alpine
+
+WORKDIR /wsify/
+
+COPY --from=builder /usr/bin/wsify /usr/bin/wsify
