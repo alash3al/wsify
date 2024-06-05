@@ -51,11 +51,6 @@ Definitions
 }
 ```
 
-Usage
-=====
-> There is no need to say a lot on how to use this software, just connect using any websocket client to `http://wsify:3000/ws` and start sending messages
-
-
 Examples
 ========
 
