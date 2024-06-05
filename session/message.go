@@ -5,6 +5,7 @@ import "strings"
 type MessageCommandType string
 
 const (
+	MessageCommandTypeConnect   = MessageCommandType("connect")
 	MessageCommandTypeJoin      = MessageCommandType("join")
 	MessageCommandTypeLeave     = MessageCommandType("leave")
 	MessageCommandTypeBroadcast = MessageCommandType("broadcast")

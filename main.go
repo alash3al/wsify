@@ -2,24 +2,17 @@ package main
 
 import (
 	"github.com/alash3al/wsify/broker"
+	_ "github.com/alash3al/wsify/broker/drivers/memory"
+	_ "github.com/alash3al/wsify/broker/drivers/redis"
 	"github.com/alash3al/wsify/config"
 	"github.com/alash3al/wsify/routes"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
-	"os"
-
-	_ "github.com/alash3al/wsify/broker/drivers/memory"
-	_ "github.com/alash3al/wsify/broker/drivers/redis"
 )
 
 func main() {
-	envFilename := ".env"
-	if len(os.Args) > 1 {
-		envFilename = os.Args[1]
-	}
-
-	cfg, err := config.NewFromEnv(envFilename)
+	cfg, err := config.NewFromFlags()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -35,7 +28,7 @@ func main() {
 	srv.Use(middleware.CORS())
 	srv.Use(middleware.Logger())
 
-	srv.GET("/ws/:id", routes.WebsocketRouteHandler(cfg, brokerConn))
+	srv.GET("/ws", routes.WebsocketRouteHandler(cfg, brokerConn))
 	srv.POST("/broadcast", routes.BroadcastHandler(cfg, brokerConn))
 
 	log.Fatal(srv.Start(cfg.GetWebServerListenAddr()))

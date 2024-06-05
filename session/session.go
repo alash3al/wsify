@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/alash3al/wsify/broker"
+	"github.com/alash3al/wsify/config"
+	"github.com/alash3al/wsify/utils"
 	"golang.org/x/net/websocket"
 	"io"
 )
@@ -12,6 +14,7 @@ import (
 type Session struct {
 	Context      context.Context
 	Broker       broker.Driver
+	Config       *config.Config
 	Conn         *websocket.Conn
 	Message      Message
 	DoneChannels map[string]chan struct{}
@@ -49,6 +52,15 @@ func (s *Session) Serve() error {
 			s.ErrChan <- err
 		}
 
+		canProceed, err := utils.ShouldAcceptPayload(s.Config.GetAuthorizerEndpointURL(), s.Message)
+		if err != nil {
+			return err
+		}
+
+		if !canProceed {
+			continue
+		}
+
 		switch s.Message.Command {
 		case MessageCommandTypeJoin:
 			s.onJoin()
@@ -81,7 +93,6 @@ func (s *Session) onJoin() {
 			s.Writer <- msg
 		}
 	})()
-
 }
 
 func (s *Session) onLeave() {

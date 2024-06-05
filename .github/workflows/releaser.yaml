@@ -1,0 +1,63 @@
+env:
+  CGO_ENABLED: "0"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: alash3al/wsify
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  binary-releaser:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4.1.3
+      - uses: wangyoucao577/go-release-action@v1.50
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://dl.google.com/go/go1.22.0.linux-amd64.tar.gz"
+          project_path: "."
+          binary_name: "wsify"
+          ldflags: "-s -w"
+
+  docker-releaser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.3
+
+      - name: Get Latest Tag
+        id: var_tag
+        run: echo "name=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+
+      - name: Log in to Github Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5.3.0
+        with:
+          file: Dockerfile
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.var_tag.outputs.name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
