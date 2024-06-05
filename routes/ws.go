@@ -9,14 +9,14 @@ import (
 	"net/http"
 )
 
-func WebsocketRouteHandler(cfg *config.Config, broker broker.Driver) echo.HandlerFunc {
+func WebsocketRouteHandler(cfg *config.Config, brokerConn broker.Driver) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return echo.WrapHandler(websocket.Server{
 			Handshake: func(c *websocket.Config, request *http.Request) error { return nil },
 			Handler: websocket.Handler(func(conn *websocket.Conn) {
-				session := session.Session{
+				sess := session.Session{
 					Context:      conn.Request().Context(),
-					Broker:       broker,
+					Broker:       brokerConn,
 					Conn:         conn,
 					DoneChannels: make(map[string]chan struct{}),
 					ErrChan:      make(chan error),
@@ -24,12 +24,12 @@ func WebsocketRouteHandler(cfg *config.Config, broker broker.Driver) echo.Handle
 				}
 
 				go (func() {
-					for err := range session.ErrChan {
+					for err := range sess.ErrChan {
 						cfg.GetLogger().Error(err.Error(), "func", "sessionErrorListener")
 					}
 				})()
 
-				if err := session.Serve(); err != nil {
+				if err := sess.Serve(); err != nil {
 					cfg.GetLogger().Error(err.Error(), "func", "session.Serve")
 					return
 				}

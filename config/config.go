@@ -10,8 +10,9 @@ type Config struct {
 	logger                 *slog.Logger
 	brokerDriver           string
 	brokerDSN              string
-	webServerListenAddress string
 	interceptorEndpointURL string
+	webServerListenAddress string
+	webServerPublishingKey string
 }
 
 func NewFromEnv(envFilename string) (*Config, error) {
@@ -23,8 +24,9 @@ func NewFromEnv(envFilename string) (*Config, error) {
 		logger:                 slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		brokerDriver:           os.Getenv("BROKER_DRIVER"),
 		brokerDSN:              os.Getenv("BROKER_DSN"),
-		webServerListenAddress: os.Getenv("SERVER_LISTEN_ADDR"),
 		interceptorEndpointURL: os.Getenv("INTERCEPTOR_ENDPOINT_URL"),
+		webServerListenAddress: os.Getenv("SERVER_LISTEN_ADDR"),
+		webServerPublishingKey: os.Getenv("SERVER_PUBLISHING_KEY"),
 	}, nil
 }
 
@@ -39,11 +41,12 @@ func (c *Config) GetBrokerDriver() string {
 func (c *Config) GetBrokerDSN() string {
 	return c.brokerDSN
 }
+func (c *Config) GetInterceptorEndpointURL() string {
+	return c.interceptorEndpointURL
+}
 
 func (c *Config) GetWebServerListenAddr() string {
 	return c.webServerListenAddress
 }
 
-func (c *Config) GetInterceptorEndpointURL() string {
-	return c.interceptorEndpointURL
-}
+func (c *Config) GetWebServerPublishingKey() string { return c.webServerPublishingKey }

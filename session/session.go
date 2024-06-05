@@ -35,6 +35,7 @@ func (s *Session) Serve() error {
 		for output := range s.Writer {
 			if err := websocket.Message.Send(s.Conn, string(output)); err != nil {
 				s.ErrChan <- err
+				break
 			}
 		}
 	})()
@@ -60,40 +61,46 @@ func (s *Session) Serve() error {
 }
 
 func (s *Session) onJoin() {
-	for _, channel := range s.Message.GetArgsChannels() {
-		feed, done, err := s.Broker.Subscribe(s.Context, []string{channel})
-		if err != nil {
-			s.ErrChan <- err
-			continue
-		}
+	channel := s.Message.GetArgsChannel()
 
-		s.DoneChannels[channel] = done
-
-		go (func() {
-			for msg := range feed {
-				s.Writer <- msg
-			}
-		})()
+	if channel == "" {
+		s.ErrChan <- errors.New("requested join on an empty chan")
+		return
 	}
+
+	feed, done, err := s.Broker.Subscribe(s.Context, channel)
+	if err != nil {
+		s.ErrChan <- err
+		return
+	}
+
+	s.DoneChannels[channel] = done
+
+	go (func() {
+		for msg := range feed {
+			s.Writer <- msg
+		}
+	})()
+
 }
 
 func (s *Session) onLeave() {
-	for _, channel := range s.Message.GetArgsChannels() {
-		s.DoneChannels[channel] <- struct{}{}
-		delete(s.DoneChannels, channel)
-	}
+	channel := s.Message.GetArgsChannel()
+	s.DoneChannels[channel] <- struct{}{}
+	delete(s.DoneChannels, channel)
 }
 
 func (s *Session) onBroadcast() {
-	for _, channel := range s.Message.GetArgsChannels() {
-		j, err := json.Marshal(s.Message.GetArgsContent())
-		if err != nil {
-			s.ErrChan <- err
-			continue
-		}
+	channel := s.Message.GetArgsChannel()
 
-		if err := s.Broker.Publish(s.Context, channel, j); err != nil {
-			s.ErrChan <- err
-		}
+	j, err := json.Marshal(s.Message.GetArgsContent())
+	if err != nil {
+		s.ErrChan <- err
+		return
 	}
+
+	if err := s.Broker.Publish(s.Context, channel, j); err != nil {
+		s.ErrChan <- err
+	}
+
 }

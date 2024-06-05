@@ -19,7 +19,7 @@ func (d *Driver) Connect(_ string) error {
 	return nil
 }
 
-func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byte, chan struct{}, error) {
+func (d *Driver) Subscribe(ctx context.Context, channel string) (<-chan []byte, chan struct{}, error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -29,13 +29,11 @@ func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byt
 
 	d.doneChannels[id] = doneChan
 
-	for _, channel := range channels {
-		if _, found := d.subscriptions[channel]; !found {
-			d.subscriptions[channel] = make(map[string]chan []byte)
-		}
-
-		d.subscriptions[channel][id] = messagesChan
+	if _, found := d.subscriptions[channel]; !found {
+		d.subscriptions[channel] = make(map[string]chan []byte)
 	}
+
+	d.subscriptions[channel][id] = messagesChan
 
 	done := func() {
 		d.Lock()
@@ -43,10 +41,9 @@ func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byt
 
 		close(messagesChan)
 
-		for _, channel := range channels {
-			delete(d.subscriptions[channel], id)
-			delete(d.doneChannels, id)
-		}
+		delete(d.subscriptions[channel], id)
+		delete(d.doneChannels, id)
+
 	}
 
 	go (func() {

@@ -1,6 +1,6 @@
 package session
 
-import "fmt"
+import "strings"
 
 type MessageCommandType string
 
@@ -15,21 +15,10 @@ type Message struct {
 	Args    map[string]any     `json:"args"`
 }
 
-func (m Message) GetArgsChannels() (result []string) {
-	if m.Args["channels"] == nil {
-		return []string{}
-	}
+func (m Message) GetArgsChannel() string {
+	s, _ := m.Args["channel"].(string)
 
-	switch val := m.Args["channels"].(type) {
-	case []string:
-		result = val
-	case []any:
-		for _, v := range val {
-			result = append(result, fmt.Sprintf("%v", v))
-		}
-	}
-
-	return
+	return strings.TrimSpace(s)
 }
 
 func (m Message) GetArgsContent() any {

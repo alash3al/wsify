@@ -2,7 +2,6 @@ package redisbroker
 
 import (
 	"context"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,8 +24,8 @@ func (d *Driver) Connect(dsn string) error {
 	return nil
 }
 
-func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byte, chan struct{}, error) {
-	pubSub := d.conn.Subscribe(ctx, channels...)
+func (d *Driver) Subscribe(ctx context.Context, channel string) (<-chan []byte, chan struct{}, error) {
+	pubSub := d.conn.Subscribe(ctx, channel)
 	messagesChan := make(chan []byte)
 	doneChan := make(chan struct{})
 
@@ -41,10 +40,7 @@ func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byt
 	})()
 
 	done := func() {
-		if err := pubSub.Close(); err != nil {
-			// TODO handle this
-			fmt.Println("Unable to close from redis pubSub")
-		}
+		_ = pubSub.Close()
 	}
 
 	go (func() {
