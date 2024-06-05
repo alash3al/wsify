@@ -20,7 +20,7 @@ func NewFromEnv(envFilename string) (*Config, error) {
 	}
 
 	return &Config{
-		logger:                 slog.Default(),
+		logger:                 slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		brokerDriver:           os.Getenv("BROKER_DRIVER"),
 		brokerDSN:              os.Getenv("BROKER_DSN"),
 		webServerListenAddress: os.Getenv("SERVER_LISTEN_ADDR"),

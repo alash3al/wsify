@@ -8,51 +8,60 @@ import (
 
 type Driver struct {
 	sync.RWMutex
-	subscriptions map[string]map[string]chan any
-	cancelFuncs   map[string]context.CancelFunc
+	subscriptions map[string]map[string]chan []byte
+	doneChannels  map[string]chan struct{}
 }
 
 func (d *Driver) Connect(_ string) error {
-	d.subscriptions = make(map[string]map[string]chan any)
-	d.cancelFuncs = make(map[string]context.CancelFunc)
+	d.subscriptions = make(map[string]map[string]chan []byte)
+	d.doneChannels = make(map[string]chan struct{})
 
 	return nil
 }
 
-func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan any, error) {
+func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byte, chan struct{}, error) {
 	d.Lock()
 	defer d.Unlock()
 
 	id := uuid.V4()
-	messagesChan := make(chan any)
-	ctx, cancel := context.WithCancel(ctx)
+	messagesChan := make(chan []byte)
+	doneChan := make(chan struct{})
 
-	d.cancelFuncs[id] = cancel
+	d.doneChannels[id] = doneChan
 
 	for _, channel := range channels {
 		if _, found := d.subscriptions[channel]; !found {
-			d.subscriptions[channel] = make(map[string]chan any)
+			d.subscriptions[channel] = make(map[string]chan []byte)
 		}
+
 		d.subscriptions[channel][id] = messagesChan
+	}
+
+	done := func() {
+		d.Lock()
+		defer d.Unlock()
+
+		close(messagesChan)
+
+		for _, channel := range channels {
+			delete(d.subscriptions[channel], id)
+			delete(d.doneChannels, id)
+		}
 	}
 
 	go (func() {
 		select {
+		case <-doneChan:
+			done()
 		case <-ctx.Done():
-			d.Lock()
-			close(messagesChan)
-			for _, channel := range channels {
-				delete(d.subscriptions[channel], id)
-				delete(d.cancelFuncs, id)
-			}
-			d.Unlock()
+			done()
 		}
 	})()
 
-	return messagesChan, nil
+	return messagesChan, doneChan, nil
 }
 
-func (d *Driver) Publish(_ context.Context, channel string, msg any) error {
+func (d *Driver) Publish(_ context.Context, channel string, msg []byte) error {
 	d.Lock()
 	defer d.Unlock()
 
@@ -69,8 +78,8 @@ func (d *Driver) Close() error {
 	d.Lock()
 	defer d.Unlock()
 
-	for _, cancel := range d.cancelFuncs {
-		cancel()
+	for _, ch := range d.doneChannels {
+		ch <- struct{}{}
 	}
 
 	return nil

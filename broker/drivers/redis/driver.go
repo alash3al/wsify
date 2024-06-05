@@ -2,7 +2,6 @@ package redisbroker
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 )
@@ -26,43 +25,42 @@ func (d *Driver) Connect(dsn string) error {
 	return nil
 }
 
-func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan any, error) {
+func (d *Driver) Subscribe(ctx context.Context, channels []string) (<-chan []byte, chan struct{}, error) {
 	pubSub := d.conn.Subscribe(ctx, channels...)
-	messagesChan := make(chan any)
+	messagesChan := make(chan []byte)
+	doneChan := make(chan struct{})
 
 	go (func() {
-		var msg any
 		for {
 			res, err := pubSub.ReceiveMessage(ctx)
 			if err != nil {
 				break
 			}
-			if err := json.Unmarshal([]byte(res.Payload), &msg); err != nil {
-				// TODO do something with the error
-			}
-			messagesChan <- msg
+			messagesChan <- []byte(res.Payload)
 		}
 	})()
+
+	done := func() {
+		if err := pubSub.Close(); err != nil {
+			// TODO handle this
+			fmt.Println("Unable to close from redis pubSub")
+		}
+	}
 
 	go (func() {
 		select {
 		case <-ctx.Done():
-			if err := pubSub.Close(); err != nil {
-				// TODO handle this
-				fmt.Println("Unable to close from redis driver")
-			}
+			done()
+		case <-doneChan:
+			done()
 		}
 	})()
 
-	return messagesChan, nil
+	return messagesChan, doneChan, nil
 }
 
-func (d *Driver) Publish(ctx context.Context, channel string, msg any) error {
-	j, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-	return d.conn.Publish(ctx, channel, string(j)).Err()
+func (d *Driver) Publish(ctx context.Context, channel string, msg []byte) error {
+	return d.conn.Publish(ctx, channel, string(msg)).Err()
 }
 
 func (d *Driver) Close() error {
