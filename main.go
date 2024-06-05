@@ -36,7 +36,7 @@ func main() {
 	srv.Use(middleware.Logger())
 
 	srv.GET("/ws/:id", routes.WebsocketRouteHandler(cfg, brokerConn))
-	srv.POST("/publish", routes.PublishHandler(cfg, brokerConn))
+	srv.POST("/broadcast", routes.BroadcastHandler(cfg, brokerConn))
 
 	log.Fatal(srv.Start(cfg.GetWebServerListenAddr()))
 }

@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-func PublishHandler(cfg *config.Config, brokerConn broker.Driver) echo.HandlerFunc {
+func BroadcastHandler(cfg *config.Config, brokerConn broker.Driver) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if c.QueryParam("key") != cfg.GetWebServerPublishingKey() {
+		if c.QueryParam("key") != cfg.GetWebServerBroadcastingKey() {
 			return c.NoContent(http.StatusForbidden)
 		}
 
@@ -25,18 +25,18 @@ func PublishHandler(cfg *config.Config, brokerConn broker.Driver) echo.HandlerFu
 		}
 
 		if err := c.Bind(&msg); err != nil {
-			cfg.GetLogger().Error(err.Error(), "func", "PublishHandler.Bind")
+			cfg.GetLogger().Error(err.Error(), "func", "BroadcastHandler.Bind")
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		j, err := json.Marshal(msg.Content)
 		if err != nil {
-			cfg.GetLogger().Error(err.Error(), "func", "PublishHandler.json.Unmarshal")
+			cfg.GetLogger().Error(err.Error(), "func", "BroadcastHandler.json.Unmarshal")
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
 		if err := brokerConn.Publish(c.Request().Context(), msg.Channel, j); err != nil {
-			cfg.GetLogger().Error(err.Error(), "func", "PublishHandler.broker.Publish")
+			cfg.GetLogger().Error(err.Error(), "func", "BroadcastHandler.broker.Publish")
 			return c.NoContent(http.StatusInternalServerError)
 		}
 

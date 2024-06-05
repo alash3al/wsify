@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	logger                 *slog.Logger
-	brokerDriver           string
-	brokerDSN              string
-	interceptorEndpointURL string
-	webServerListenAddress string
-	webServerPublishingKey string
+	logger                   *slog.Logger
+	brokerDriver             string
+	brokerDSN                string
+	interceptorEndpointURL   string
+	webServerListenAddress   string
+	webServerBroadcastingKey string
 }
 
 func NewFromEnv(envFilename string) (*Config, error) {
@@ -21,12 +21,12 @@ func NewFromEnv(envFilename string) (*Config, error) {
 	}
 
 	return &Config{
-		logger:                 slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-		brokerDriver:           os.Getenv("BROKER_DRIVER"),
-		brokerDSN:              os.Getenv("BROKER_DSN"),
-		interceptorEndpointURL: os.Getenv("INTERCEPTOR_ENDPOINT_URL"),
-		webServerListenAddress: os.Getenv("SERVER_LISTEN_ADDR"),
-		webServerPublishingKey: os.Getenv("SERVER_PUBLISHING_KEY"),
+		logger:                   slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		brokerDriver:             os.Getenv("BROKER_DRIVER"),
+		brokerDSN:                os.Getenv("BROKER_DSN"),
+		interceptorEndpointURL:   os.Getenv("INTERCEPTOR_ENDPOINT_URL"),
+		webServerListenAddress:   os.Getenv("SERVER_LISTEN_ADDR"),
+		webServerBroadcastingKey: os.Getenv("SERVER_BROADCASTING_KEY"),
 	}, nil
 }
 
@@ -49,4 +49,4 @@ func (c *Config) GetWebServerListenAddr() string {
 	return c.webServerListenAddress
 }
 
-func (c *Config) GetWebServerPublishingKey() string { return c.webServerPublishingKey }
+func (c *Config) GetWebServerBroadcastingKey() string { return c.webServerBroadcastingKey }
