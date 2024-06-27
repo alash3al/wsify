@@ -50,6 +50,7 @@ Definitions
   }
 }
 ```
+> On all messages from party, wsify will try to authorize it with 'Message' structure inside
 
 Usage
 =====
@@ -79,7 +80,8 @@ Examples
 {
   "command":  "broadcast",
   "args": {
-    "channel": "hello"
+    "channel": "hello",
+    "content": "your message here"
   }
 }
 ```
@@ -89,9 +91,7 @@ Examples
 ```json5
 {
     "channel": "hello",
-    "args": {
-      "content": "Hello World! from the server"
-    }
+    "content": "Hello World! from the server"
 }
 ```
 
